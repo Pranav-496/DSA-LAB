@@ -1,5 +1,4 @@
 #include <iostream>
-#include <iomanip>
 #include <string>
 using namespace std;
 
@@ -103,19 +102,21 @@ public:
   {
     cout << "\nAdjacency Matrix\n\n";
 
-    cout << setw(10) << "";
+    cout << "\t";
 
     for (int i = 0; i < n; i++)
-      cout << setw(10) << city[i];
+      cout << city[i] << "\t";
 
     cout << endl;
 
     for (int i = 0; i < n; i++)
     {
-      cout << setw(10) << city[i];
+      cout << city[i] << "\t";
 
       for (int j = 0; j < n; j++)
-        cout << setw(10) << matrix[i][j];
+      {
+        cout << matrix[i][j] << "\t";
+      }
 
       cout << endl;
     }
