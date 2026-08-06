@@ -1,245 +1,267 @@
-#include <iostream>
-#include <string>
+#include <bits/stdc++.h>
 using namespace std;
 
-const int MAX = 20;
+//==================== ADJACENCY LIST ====================//
 
 class GraphNode
 {
 public:
-  int vertex;
-  int cost;
+  int dest, cost, tim;
   GraphNode *next;
 
-  GraphNode(int v, int c)
+  GraphNode(int d, int c, int t)
   {
-    vertex = v;
+    dest = d;
     cost = c;
+    tim = t;
     next = NULL;
   }
 };
 
-class Graph
+class AdjList
 {
-  int n;
-  string city[MAX];
-  int matrix[MAX][MAX];
-  GraphNode *head[MAX];
-
 public:
-  Graph()
+  GraphNode *head[4];
+  string node[4] = {"Nashik", "Mumbai", "Pune", "Delhi"};
+
+  AdjList()
   {
-    n = 0;
-    for (int i = 0; i < MAX; i++)
-    {
+    for (int i = 0; i < 4; i++)
       head[i] = NULL;
-
-      for (int j = 0; j < MAX; j++)
-        matrix[i][j] = 0;
-    }
   }
 
-  int getIndex(string name)
+  void addFlight(int s, int d, int cost, int tim)
   {
-    for (int i = 0; i < n; i++)
+    GraphNode *temp = new GraphNode(d, cost, tim);
+    temp->next = head[s];
+    head[s] = temp;
+  }
+
+  void display()
+  {
+    cout << "\n----- Adjacency List -----\n\n";
+
+    for (int i = 0; i < 4; i++)
     {
-      if (city[i] == name)
-        return i;
-    }
-    return -1;
-  }
+      cout << node[i] << " -> ";
 
-  void createGraph()
-  {
-    cout << "Enter number of cities: ";
-    cin >> n;
+      GraphNode *temp = head[i];
 
-    cout << "Enter city names:\n";
-    for (int i = 0; i < n; i++)
-      cin >> city[i];
-  }
-
-  void addFlight()
-  {
-    string src, dest;
-    int cost;
-
-    cout << "Enter source city: ";
-    cin >> src;
-
-    cout << "Enter destination city: ";
-    cin >> dest;
-
-    cout << "Enter cost (Time/Fuel): ";
-    cin >> cost;
-
-    int u = getIndex(src);
-    int v = getIndex(dest);
-
-    if (u == -1 || v == -1)
-    {
-      cout << "Invalid city!\n";
-      return;
-    }
-
-    // Adjacency Matrix
-    matrix[u][v] = cost;
-    matrix[v][u] = cost;
-
-    // Adjacency List
-    GraphNode *temp = new GraphNode(v, cost);
-    temp->next = head[u];
-    head[u] = temp;
-
-    temp = new GraphNode(u, cost);
-    temp->next = head[v];
-    head[v] = temp;
-
-    cout << "Flight Added Successfully.\n";
-  }
-
-  void displayMatrix()
-  {
-    cout << "\nAdjacency Matrix\n\n";
-
-    cout << "\t";
-
-    for (int i = 0; i < n; i++)
-      cout << city[i] << "\t";
-
-    cout << endl;
-
-    for (int i = 0; i < n; i++)
-    {
-      cout << city[i] << "\t";
-
-      for (int j = 0; j < n; j++)
+      while (temp != NULL)
       {
-        cout << matrix[i][j] << "\t";
+        cout << "[" << node[temp->dest]
+             << ", Cost=" << temp->cost
+             << ", Time=" << temp->tim
+             << "] -> ";
+
+        temp = temp->next;
       }
 
+      cout << "NULL\n\n";
+    }
+  }
+
+  void exist(int s, int d)
+  {
+    GraphNode *temp = head[s];
+
+    while (temp != NULL)
+    {
+      if (temp->dest == d)
+      {
+        cout << "\nDirect Path Exists\n";
+        cout << "Cost = " << temp->cost << endl;
+        cout << "Time = " << temp->tim << endl;
+        return;
+      }
+      temp = temp->next;
+    }
+
+    temp = head[s];
+
+    while (temp != NULL)
+    {
+      int mid = temp->dest;
+      GraphNode *temp2 = head[mid];
+
+      while (temp2 != NULL)
+      {
+        if (temp2->dest == d)
+        {
+          cout << "\nIndirect Path Exists\n";
+          cout << node[s] << " -> "
+               << node[mid] << " -> "
+               << node[d] << endl;
+
+          cout << "Cost = "
+               << temp->cost + temp2->cost << endl;
+
+          cout << "Time = "
+               << temp->tim + temp2->tim << endl;
+
+          return;
+        }
+
+        temp2 = temp2->next;
+      }
+
+      temp = temp->next;
+    }
+
+    cout << "No Path Exists\n";
+  }
+};
+
+//==================== ADJACENCY MATRIX ====================//
+
+class AdjMatrix
+{
+public:
+  int mat[4][4] = {0};
+  int tim[4][4] = {0};
+
+  string node[4] = {"Nashik", "Mumbai", "Pune", "Delhi"};
+
+  void addFlight(int s, int d, int cost, int t)
+  {
+    mat[s][d] = cost;
+    tim[s][d] = t;
+  }
+
+  void display()
+  {
+    cout << "\n----- Adjacency Matrix -----\n\n";
+
+    for (int i = 0; i < 4; i++)
+    {
+      for (int j = 0; j < 4; j++)
+      {
+        if (i == j)
+          continue;
+
+        cout << node[i] << " -> " << node[j]
+             << " | Cost = " << mat[i][j]
+             << " | Time = " << tim[i][j] << endl;
+      }
       cout << endl;
     }
   }
 
-  void displayList()
+  void exist(int s, int d)
   {
-    cout << "\nAdjacency List\n";
-
-    for (int i = 0; i < n; i++)
+    if (mat[s][d])
     {
-      cout << city[i] << " -> ";
-
-      GraphNode *temp = head[i];
-
-      while (temp != NULL)
-      {
-        cout << "(" << city[temp->vertex] << ", " << temp->cost << ") -> ";
-        temp = temp->next;
-      }
-
-      cout << "NULL\n";
-    }
-  }
-
-  void checkConnection()
-  {
-    string src, dest;
-
-    cout << "Enter source city: ";
-    cin >> src;
-
-    cout << "Enter destination city: ";
-    cin >> dest;
-
-    int u = getIndex(src);
-    int v = getIndex(dest);
-
-    if (u == -1 || v == -1)
-    {
-      cout << "Invalid City!\n";
+      cout << "\nDirect Path Exists\n";
+      cout << "Cost = " << mat[s][d] << endl;
+      cout << "Time = " << tim[s][d] << endl;
       return;
     }
 
-    if (matrix[u][v] != 0)
-      cout << "Flight Exists. Cost = " << matrix[u][v] << endl;
-    else
-      cout << "No Direct Flight Exists.\n";
-  }
-
-  void compareStorage()
-  {
-    int edges = 0;
-
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < 4; i++)
     {
-      GraphNode *temp = head[i];
-
-      while (temp != NULL)
+      if (mat[s][i] && mat[i][d])
       {
-        edges++;
-        temp = temp->next;
+        cout << "\nIndirect Path Exists\n";
+        cout << node[s] << " -> "
+             << node[i] << " -> "
+             << node[d] << endl;
+
+        cout << "Cost = "
+             << mat[s][i] + mat[i][d] << endl;
+
+        cout << "Time = "
+             << tim[s][i] + tim[i][d] << endl;
+
+        return;
       }
     }
 
-    cout << "\nStorage Comparison\n";
-    cout << "----------------------\n";
-    cout << "Adjacency Matrix : O(V^2)\n";
-    cout << "Memory Used = " << n * n << " integer cells\n\n";
-
-    cout << "Adjacency List : O(V + E)\n";
-    cout << "Vertices = " << n << endl;
-    cout << "Edges Stored = " << edges << endl;
-
-    cout << "\nAdjacency List is better for sparse graphs.\n";
-    cout << "Adjacency Matrix is better for dense graphs.\n";
+    cout << "No Path Exists\n";
   }
 };
 
+//==================== MAIN ====================//
+
 int main()
 {
-  Graph g;
-  g.createGraph();
+  AdjList listGraph;
+  AdjMatrix matrixGraph;
 
   int choice;
 
   do
   {
-    cout << "\n===== Flight Management =====\n";
+    cout << "\n========== MAIN MENU ==========\n";
     cout << "1. Add Flight\n";
-    cout << "2. Display Adjacency Matrix\n";
-    cout << "3. Display Adjacency List\n";
-    cout << "4. Check Connection\n";
-    cout << "5. Compare Storage\n";
+    cout << "2. Check Flight (Adjacency List)\n";
+    cout << "3. Check Flight (Adjacency Matrix)\n";
+    cout << "4. Display Adjacency List\n";
+    cout << "5. Display Adjacency Matrix\n";
     cout << "6. Exit\n";
 
-    cout << "Enter Choice: ";
+    cout << "Enter Choice : ";
     cin >> choice;
 
     switch (choice)
     {
     case 1:
-      g.addFlight();
+    {
+      int s, d, cost, t;
+
+      cout << "\nCities:\n";
+      cout << "0. Nashik\n";
+      cout << "1. Mumbai\n";
+      cout << "2. Pune\n";
+      cout << "3. Delhi\n";
+
+      cout << "Enter Source : ";
+      cin >> s;
+
+      cout << "Enter Destination : ";
+      cin >> d;
+
+      cout << "Enter Cost : ";
+      cin >> cost;
+
+      cout << "Enter Time : ";
+      cin >> t;
+
+      // Add to both representations
+      listGraph.addFlight(s, d, cost, t);
+      matrixGraph.addFlight(s, d, cost, t);
+
+      cout << "Flight Added Successfully.\n";
       break;
+    }
 
     case 2:
-      g.displayMatrix();
+    {
+      int s, d;
+      cout << "Enter Source and Destination : ";
+      cin >> s >> d;
+      listGraph.exist(s, d);
       break;
+    }
 
     case 3:
-      g.displayList();
+    {
+      int s, d;
+      cout << "Enter Source and Destination : ";
+      cin >> s >> d;
+      matrixGraph.exist(s, d);
       break;
+    }
 
     case 4:
-      g.checkConnection();
+      listGraph.display();
       break;
 
     case 5:
-      g.compareStorage();
+      matrixGraph.display();
       break;
 
     case 6:
-      cout << "Program Ended.\n";
+      cout << "Thank You!\n";
       break;
 
     default:
