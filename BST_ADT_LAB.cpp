@@ -53,6 +53,11 @@ public:
     void inorder(Node *);
     void postorder(Node *);
 
+    // Non-Recursive (Iterative) Traversals - Simple versions
+    void preorderNR(Node *);
+    void inorderNR(Node *);
+    void postorderNR(Node *);
+
     void findMin(Node *);
     void findMax(Node *);
 
@@ -270,6 +275,108 @@ void BST::postorder(Node *root)
             s1.push(temp->right);
     }
 
+    while (!s2.empty())
+    {
+        cout << s2.top()->data << " ";
+        s2.pop();
+    }
+}
+
+// ========== Non-Recursive Traversals (Simple & Beginner Friendly) ==========
+
+// Non-Recursive Preorder: Root -> Left -> Right
+// Logic: Use one stack.
+//   1. Push root to stack
+//   2. Pop top, print it
+//   3. Push its RIGHT child first, then LEFT child
+//   4. Repeat until stack is empty
+// (Right is pushed first so that Left is processed first)
+void BST::preorderNR(Node *root)
+{
+    if (root == NULL)
+        return;
+
+    stack<Node *> s;
+    s.push(root);
+
+    while (!s.empty())
+    {
+        Node *curr = s.top();
+        s.pop();
+
+        cout << curr->data << " ";
+
+        // Push right first so left is on top
+        if (curr->right != NULL)
+            s.push(curr->right);
+
+        if (curr->left != NULL)
+            s.push(curr->left);
+    }
+}
+
+// Non-Recursive Inorder: Left -> Root -> Right
+// Logic: Use one stack.
+//   1. Go as far left as possible, pushing each node
+//   2. Pop top, print it
+//   3. Move to its right child and repeat
+void BST::inorderNR(Node *root)
+{
+    stack<Node *> s;
+    Node *curr = root;
+
+    while (curr != NULL || !s.empty())
+    {
+        // Go to the leftmost node
+        while (curr != NULL)
+        {
+            s.push(curr);
+            curr = curr->left;
+        }
+
+        // curr is NULL here, so pop from stack
+        curr = s.top();
+        s.pop();
+
+        cout << curr->data << " ";
+
+        // Now move to right subtree
+        curr = curr->right;
+    }
+}
+
+// Non-Recursive Postorder: Left -> Right -> Root
+// Logic: Use TWO stacks.
+//   1. Push root to stack1
+//   2. Pop from stack1, push it to stack2
+//   3. Push its LEFT child, then RIGHT child to stack1
+//   4. Repeat until stack1 is empty
+//   5. Pop and print everything from stack2
+// (stack2 will have nodes in postorder)
+void BST::postorderNR(Node *root)
+{
+    if (root == NULL)
+        return;
+
+    stack<Node *> s1, s2;
+    s1.push(root);
+
+    while (!s1.empty())
+    {
+        Node *curr = s1.top();
+        s1.pop();
+
+        s2.push(curr);
+
+        // Push left first, then right
+        if (curr->left != NULL)
+            s1.push(curr->left);
+
+        if (curr->right != NULL)
+            s1.push(curr->right);
+    }
+
+    // Print all from stack2
     while (!s2.empty())
     {
         cout << s2.top()->data << " ";
@@ -617,7 +724,10 @@ int main()
         cout << "17. Construct using Inorder + Postorder\n";
         cout << "18. Update Node\n";
         cout << "19. Compare Two Trees\n";
-        cout << "20. Exit\n";
+        cout << "20. Non-Recursive Preorder\n";
+        cout << "21. Non-Recursive Inorder\n";
+        cout << "22. Non-Recursive Postorder\n";
+        cout << "23. Exit\n";
 
         cout << "Enter choice : ";
         cin >> choice;
@@ -755,6 +865,24 @@ int main()
         }
 
         case 20:
+            cout << "Non-Recursive Preorder : ";
+            tree.preorderNR(tree.getRoot());
+            cout << endl;
+            break;
+
+        case 21:
+            cout << "Non-Recursive Inorder : ";
+            tree.inorderNR(tree.getRoot());
+            cout << endl;
+            break;
+
+        case 22:
+            cout << "Non-Recursive Postorder : ";
+            tree.postorderNR(tree.getRoot());
+            cout << endl;
+            break;
+
+        case 23:
             cout << "Thank You!\n";
             break;
 
@@ -762,7 +890,7 @@ int main()
             cout << "Invalid Choice!\n";
         }
 
-    } while (choice != 20);
+    } while (choice != 23);
 
     return 0;
 }
