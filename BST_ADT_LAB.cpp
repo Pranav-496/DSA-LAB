@@ -53,7 +53,7 @@ public:
     void inorder(Node *);
     void postorder(Node *);
 
-    // Non-Recursive (Iterative) Traversals - Simple versions
+    // Non-Recursive (Iterative) Traversals
     void preorderNR(Node *);
     void inorderNR(Node *);
     void postorderNR(Node *);
@@ -204,93 +204,41 @@ Node *BST::searchRec(Node *root, int key)
     return searchRec(root->right, key);
 }
 
+// Recursive Preorder: Root -> Left -> Right
 void BST::preorder(Node *root)
 {
     if (root == NULL)
         return;
 
-    stack<Node *> s;
-
-    s.push(root);
-
-    while (!s.empty())
-    {
-        Node *temp = s.top();
-        s.pop();
-
-        cout << temp->data << " ";
-
-        if (temp->right != NULL)
-            s.push(temp->right);
-
-        if (temp->left != NULL)
-            s.push(temp->left);
-    }
+    cout << root->data << " ";
+    preorder(root->left);
+    preorder(root->right);
 }
 
+// Recursive Inorder: Left -> Root -> Right
 void BST::inorder(Node *root)
 {
-    stack<Node *> s;
+    if (root == NULL)
+        return;
 
-    Node *temp = root;
-
-    while (temp != NULL || !s.empty())
-    {
-        while (temp != NULL)
-        {
-            s.push(temp);
-            temp = temp->left;
-        }
-
-        temp = s.top();
-        s.pop();
-
-        cout << temp->data << " ";
-
-        temp = temp->right;
-    }
+    inorder(root->left);
+    cout << root->data << " ";
+    inorder(root->right);
 }
 
+// Recursive Postorder: Left -> Right -> Root
 void BST::postorder(Node *root)
 {
     if (root == NULL)
         return;
 
-    stack<Node *> s1;
-    stack<Node *> s2;
-
-    s1.push(root);
-
-    while (!s1.empty())
-    {
-        Node *temp = s1.top();
-        s1.pop();
-
-        s2.push(temp);
-
-        if (temp->left != NULL)
-            s1.push(temp->left);
-
-        if (temp->right != NULL)
-            s1.push(temp->right);
-    }
-
-    while (!s2.empty())
-    {
-        cout << s2.top()->data << " ";
-        s2.pop();
-    }
+    postorder(root->left);
+    postorder(root->right);
+    cout << root->data << " ";
 }
 
-// ========== Non-Recursive Traversals (Simple & Beginner Friendly) ==========
-
 // Non-Recursive Preorder: Root -> Left -> Right
-// Logic: Use one stack.
-//   1. Push root to stack
-//   2. Pop top, print it
-//   3. Push its RIGHT child first, then LEFT child
-//   4. Repeat until stack is empty
-// (Right is pushed first so that Left is processed first)
+// Use one stack. Push root, pop & print, push right then left.
 void BST::preorderNR(Node *root)
 {
     if (root == NULL)
@@ -306,7 +254,6 @@ void BST::preorderNR(Node *root)
 
         cout << curr->data << " ";
 
-        // Push right first so left is on top
         if (curr->right != NULL)
             s.push(curr->right);
 
@@ -316,10 +263,7 @@ void BST::preorderNR(Node *root)
 }
 
 // Non-Recursive Inorder: Left -> Root -> Right
-// Logic: Use one stack.
-//   1. Go as far left as possible, pushing each node
-//   2. Pop top, print it
-//   3. Move to its right child and repeat
+// Use one stack. Go left pushing nodes, pop & print, move right.
 void BST::inorderNR(Node *root)
 {
     stack<Node *> s;
@@ -327,32 +271,24 @@ void BST::inorderNR(Node *root)
 
     while (curr != NULL || !s.empty())
     {
-        // Go to the leftmost node
         while (curr != NULL)
         {
             s.push(curr);
             curr = curr->left;
         }
 
-        // curr is NULL here, so pop from stack
         curr = s.top();
         s.pop();
 
         cout << curr->data << " ";
 
-        // Now move to right subtree
         curr = curr->right;
     }
 }
 
 // Non-Recursive Postorder: Left -> Right -> Root
-// Logic: Use TWO stacks.
-//   1. Push root to stack1
-//   2. Pop from stack1, push it to stack2
-//   3. Push its LEFT child, then RIGHT child to stack1
-//   4. Repeat until stack1 is empty
-//   5. Pop and print everything from stack2
-// (stack2 will have nodes in postorder)
+// Use two stacks. Push to s1, pop to s2 (push left then right to s1).
+// Finally print s2.
 void BST::postorderNR(Node *root)
 {
     if (root == NULL)
@@ -368,7 +304,6 @@ void BST::postorderNR(Node *root)
 
         s2.push(curr);
 
-        // Push left first, then right
         if (curr->left != NULL)
             s1.push(curr->left);
 
@@ -376,7 +311,6 @@ void BST::postorderNR(Node *root)
             s1.push(curr->right);
     }
 
-    // Print all from stack2
     while (!s2.empty())
     {
         cout << s2.top()->data << " ";
