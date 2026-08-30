@@ -21,9 +21,6 @@ class BST
 private:
     Node *root;
 
-    Node *constructPreIn(vector<int> &pre, vector<int> &in, int &preIndex, int start, int end);
-    Node *constructPostIn(vector<int> &post, vector<int> &in, int &postIndex, int start, int end);
-
     Node *insertNode(Node *, int);
     Node *deleteNode(Node *, int);
 
@@ -31,7 +28,6 @@ private:
     int countLeaf(Node *);
     int countInternal(Node *);
     int heightRec(Node *);
-    bool equalTree(Node *, Node *);
 
 public:
     BST()
@@ -49,15 +45,6 @@ public:
     void search();
     Node *searchRec(Node *, int);
 
-    void preorder(Node *);
-    void inorder(Node *);
-    void postorder(Node *);
-
-    // Non-Recursive (Iterative) Traversals
-    void preorderNR(Node *);
-    void inorderNR(Node *);
-    void postorderNR(Node *);
-
     void findMin(Node *);
     void findMax(Node *);
 
@@ -70,14 +57,11 @@ public:
     int internalNodes(Node *);
 
     void mirror(Node *);
-    bool isEqual(Node *, Node *);
 
     void update();
-
-    void constructFromPreIn();
-    void constructFromPostIn();
 };
 
+// TC: O(h)  SC: O(1)  [h = height of tree]
 void BST::findMin(Node *root)
 {
     if (root == NULL)
@@ -92,6 +76,7 @@ void BST::findMin(Node *root)
     cout << "Minimum element is " << root->data << endl;
 }
 
+// TC: O(h)  SC: O(1)
 void BST::findMax(Node *root)
 {
     if (root == NULL)
@@ -106,6 +91,7 @@ void BST::findMax(Node *root)
     cout << "Maximum element is " << root->data << endl;
 }
 
+// TC: O(h) per insertion  SC: O(1)
 void BST::create()
 {
     char ch;
@@ -164,6 +150,7 @@ void BST::create()
     } while (ch == 'y' || ch == 'Y');
 }
 
+// TC: O(h)  SC: O(1)
 void BST::search()
 {
     int key;
@@ -190,6 +177,7 @@ void BST::search()
     cout << "Element Not Found.\n";
 }
 
+// TC: O(h)  SC: O(h) [recursive call stack]
 Node *BST::searchRec(Node *root, int key)
 {
     if (root == NULL)
@@ -204,151 +192,31 @@ Node *BST::searchRec(Node *root, int key)
     return searchRec(root->right, key);
 }
 
-// Recursive Preorder: Root -> Left -> Right
-void BST::preorder(Node *root)
-{
-    if (root == NULL)
-        return;
-
-    cout << root->data << " ";
-    preorder(root->left);
-    preorder(root->right);
-}
-
-// Recursive Inorder: Left -> Root -> Right
-void BST::inorder(Node *root)
-{
-    if (root == NULL)
-        return;
-
-    inorder(root->left);
-    cout << root->data << " ";
-    inorder(root->right);
-}
-
-// Recursive Postorder: Left -> Right -> Root
-void BST::postorder(Node *root)
-{
-    if (root == NULL)
-        return;
-
-    postorder(root->left);
-    postorder(root->right);
-    cout << root->data << " ";
-}
-
-// Non-Recursive Preorder: Root -> Left -> Right
-// Use one stack. Push root, pop & print, push right then left.
-void BST::preorderNR(Node *root)
-{
-    if (root == NULL)
-        return;
-
-    stack<Node *> s;
-    s.push(root);
-
-    while (!s.empty())
-    {
-        Node *curr = s.top();
-        s.pop();
-
-        cout << curr->data << " ";
-
-        if (curr->right != NULL)
-            s.push(curr->right);
-
-        if (curr->left != NULL)
-            s.push(curr->left);
-    }
-}
-
-// Non-Recursive Inorder: Left -> Root -> Right
-// Use one stack. Go left pushing nodes, pop & print, move right.
-void BST::inorderNR(Node *root)
-{
-    stack<Node *> s;
-    Node *curr = root;
-
-    while (curr != NULL || !s.empty())
-    {
-        while (curr != NULL)
-        {
-            s.push(curr);
-            curr = curr->left;
-        }
-
-        curr = s.top();
-        s.pop();
-
-        cout << curr->data << " ";
-
-        curr = curr->right;
-    }
-}
-
-// Non-Recursive Postorder: Left -> Right -> Root
-// Use two stacks. Push to s1, pop to s2 (push left then right to s1).
-// Finally print s2.
-void BST::postorderNR(Node *root)
-{
-    if (root == NULL)
-        return;
-
-    stack<Node *> s1, s2;
-    s1.push(root);
-
-    while (!s1.empty())
-    {
-        Node *curr = s1.top();
-        s1.pop();
-
-        s2.push(curr);
-
-        if (curr->left != NULL)
-            s1.push(curr->left);
-
-        if (curr->right != NULL)
-            s1.push(curr->right);
-    }
-
-    while (!s2.empty())
-    {
-        cout << s2.top()->data << " ";
-        s2.pop();
-    }
-}
-
+// Print Ascending - Inorder of BST gives sorted order
+// TC: O(n)  SC: O(h) [recursive call stack]
 void BST::printASC(Node *root)
 {
-    inorder(root);
+    if (root == NULL)
+        return;
+
+    printASC(root->left);
+    cout << root->data << " ";
+    printASC(root->right);
 }
 
+// Print Descending - Reverse Inorder of BST
+// TC: O(n)  SC: O(h) [recursive call stack]
 void BST::printDESC(Node *root)
 {
     if (root == NULL)
         return;
 
-    stack<Node *> s;
-
-    Node *temp = root;
-
-    while (temp != NULL || !s.empty())
-    {
-        while (temp != NULL)
-        {
-            s.push(temp);
-            temp = temp->right;
-        }
-
-        temp = s.top();
-        s.pop();
-
-        cout << temp->data << " ";
-
-        temp = temp->left;
-    }
+    printDESC(root->right);
+    cout << root->data << " ";
+    printDESC(root->left);
 }
 
+// TC: O(n)  SC: O(h) [recursive call stack]
 int BST::heightRec(Node *root)
 {
     if (root == NULL)
@@ -358,11 +226,13 @@ int BST::heightRec(Node *root)
                    heightRec(root->right));
 }
 
+// TC: O(n)  SC: O(h)
 int BST::height(Node *root)
 {
     return heightRec(root);
 }
 
+// TC: O(n)  SC: O(h) [recursive call stack]
 int BST::countTotal(Node *root)
 {
     if (root == NULL)
@@ -371,11 +241,13 @@ int BST::countTotal(Node *root)
     return 1 + countTotal(root->left) + countTotal(root->right);
 }
 
+// TC: O(n)  SC: O(h)
 int BST::totalNodes(Node *root)
 {
     return countTotal(root);
 }
 
+// TC: O(n)  SC: O(h) [recursive call stack]
 int BST::countLeaf(Node *root)
 {
     if (root == NULL)
@@ -387,11 +259,13 @@ int BST::countLeaf(Node *root)
     return countLeaf(root->left) + countLeaf(root->right);
 }
 
+// TC: O(n)  SC: O(h)
 int BST::leafNodes(Node *root)
 {
     return countLeaf(root);
 }
 
+// TC: O(n)  SC: O(h) [recursive call stack]
 int BST::countInternal(Node *root)
 {
     if (root == NULL)
@@ -403,11 +277,13 @@ int BST::countInternal(Node *root)
     return 1 + countInternal(root->left) + countInternal(root->right);
 }
 
+// TC: O(n)  SC: O(h)
 int BST::internalNodes(Node *root)
 {
     return countInternal(root);
 }
 
+// TC: O(n)  SC: O(h) [recursive call stack]
 void BST::mirror(Node *root)
 {
     if (root == NULL)
@@ -419,26 +295,7 @@ void BST::mirror(Node *root)
     mirror(root->right);
 }
 
-bool BST::equalTree(Node *root1, Node *root2)
-{
-    if (root1 == NULL && root2 == NULL)
-        return true;
-
-    if (root1 == NULL || root2 == NULL)
-        return false;
-
-    if (root1->data != root2->data)
-        return false;
-
-    return equalTree(root1->left, root2->left) &&
-           equalTree(root1->right, root2->right);
-}
-
-bool BST::isEqual(Node *root1, Node *root2)
-{
-    return equalTree(root1, root2);
-}
-
+// TC: O(h)  SC: O(h) [recursive call stack]
 Node *BST::insertNode(Node *root, int val)
 {
     if (root == NULL)
@@ -453,6 +310,7 @@ Node *BST::insertNode(Node *root, int val)
     return root;
 }
 
+// TC: O(h)  SC: O(h) [recursive call stack]
 Node *BST::deleteNode(Node *root, int val)
 {
     if (root == NULL)
@@ -495,6 +353,7 @@ Node *BST::deleteNode(Node *root, int val)
     return root;
 }
 
+// TC: O(h)  SC: O(h) [search + delete + insert]
 void BST::update()
 {
     int oldValue, newValue;
@@ -525,110 +384,6 @@ void BST::update()
     cout << "Node updated successfully.\n";
 }
 
-Node *BST::constructPreIn(vector<int> &pre,
-                          vector<int> &in,
-                          int &preIndex,
-                          int start,
-                          int end)
-{
-    if (start > end)
-        return NULL;
-
-    int value = pre[preIndex++];
-
-    Node *newNode = new Node(value);
-
-    int pos = start;
-
-    while (in[pos] != value)
-        pos++;
-
-    newNode->left =
-        constructPreIn(pre, in, preIndex, start, pos - 1);
-
-    newNode->right =
-        constructPreIn(pre, in, preIndex, pos + 1, end);
-
-    return newNode;
-}
-
-void BST::constructFromPreIn()
-{
-    int n;
-
-    cout << "Enter number of nodes : ";
-    cin >> n;
-
-    vector<int> pre(n);
-    vector<int> in(n);
-
-    cout << "Enter preorder : ";
-    for (int i = 0; i < n; i++)
-        cin >> pre[i];
-
-    cout << "Enter inorder : ";
-    for (int i = 0; i < n; i++)
-        cin >> in[i];
-
-    int preIndex = 0;
-
-    root = constructPreIn(pre, in, preIndex, 0, n - 1);
-
-    cout << "Tree constructed successfully.\n";
-}
-
-Node *BST::constructPostIn(vector<int> &post,
-                           vector<int> &in,
-                           int &postIndex,
-                           int start,
-                           int end)
-{
-    if (start > end)
-        return NULL;
-
-    int value = post[postIndex--];
-
-    Node *newNode = new Node(value);
-
-    int pos = start;
-
-    while (in[pos] != value)
-        pos++;
-
-    newNode->right =
-        constructPostIn(post, in, postIndex, pos + 1, end);
-
-    newNode->left =
-        constructPostIn(post, in, postIndex, start, pos - 1);
-
-    return newNode;
-}
-
-void BST::constructFromPostIn()
-{
-    int n;
-
-    cout << "Enter number of nodes : ";
-    cin >> n;
-
-    vector<int> post(n);
-    vector<int> in(n);
-
-    cout << "Enter postorder : ";
-    for (int i = 0; i < n; i++)
-        cin >> post[i];
-
-    cout << "Enter inorder : ";
-    for (int i = 0; i < n; i++)
-        cin >> in[i];
-
-    int postIndex = n - 1;
-
-    root = constructPostIn(post, in, postIndex, 0, n - 1);
-
-    cout << "Tree constructed successfully.\n";
-}
-
 int main()
 {
     BST tree;
@@ -637,31 +392,22 @@ int main()
 
     do
     {
-        cout << "\n---------- ARSENAL ----------\n";
+        cout << "\n---------- BST ADT ----------\n";
 
         cout << "1. Create BST\n";
         cout << "2. Search Node\n";
-        cout << "3. Preorder\n";
-        cout << "4. Inorder\n";
-        cout << "5. Postorder\n";
-        cout << "6. Search Recursive\n";
-        cout << "7. Find Minimum\n";
-        cout << "8. Find Maximum\n";
-        cout << "9. Print Ascending\n";
-        cout << "10. Print Descending\n";
-        cout << "11. Find Height\n";
-        cout << "12. Count Total Nodes\n";
-        cout << "13. Count Leaf Nodes\n";
-        cout << "14. Count Internal Nodes\n";
-        cout << "15. Find Mirror\n";
-        cout << "16. Construct using Inorder + Preorder\n";
-        cout << "17. Construct using Inorder + Postorder\n";
-        cout << "18. Update Node\n";
-        cout << "19. Compare Two Trees\n";
-        cout << "20. Non-Recursive Preorder\n";
-        cout << "21. Non-Recursive Inorder\n";
-        cout << "22. Non-Recursive Postorder\n";
-        cout << "23. Exit\n";
+        cout << "3. Search Recursive\n";
+        cout << "4. Find Minimum\n";
+        cout << "5. Find Maximum\n";
+        cout << "6. Print Ascending\n";
+        cout << "7. Print Descending\n";
+        cout << "8. Find Height\n";
+        cout << "9. Count Total Nodes\n";
+        cout << "10. Count Leaf Nodes\n";
+        cout << "11. Count Internal Nodes\n";
+        cout << "12. Find Mirror\n";
+        cout << "13. Update Node\n";
+        cout << "14. Exit\n";
 
         cout << "Enter choice : ";
         cin >> choice;
@@ -677,24 +423,6 @@ int main()
             break;
 
         case 3:
-            cout << "Preorder : ";
-            tree.preorder(tree.getRoot());
-            cout << endl;
-            break;
-
-        case 4:
-            cout << "Inorder : ";
-            tree.inorder(tree.getRoot());
-            cout << endl;
-            break;
-
-        case 5:
-            cout << "Postorder : ";
-            tree.postorder(tree.getRoot());
-            cout << endl;
-            break;
-
-        case 6:
         {
             int key;
 
@@ -711,112 +439,61 @@ int main()
             break;
         }
 
-        case 7:
+        case 4:
             tree.findMin(tree.getRoot());
             break;
 
-        case 8:
+        case 5:
             tree.findMax(tree.getRoot());
             break;
 
-        case 9:
+        case 6:
             cout << "Ascending : ";
             tree.printASC(tree.getRoot());
             cout << endl;
             break;
 
-        case 10:
+        case 7:
             cout << "Descending : ";
             tree.printDESC(tree.getRoot());
             cout << endl;
             break;
 
-        case 11:
+        case 8:
             cout << "Height = "
                  << tree.height(tree.getRoot()) << endl;
             break;
 
-        case 12:
+        case 9:
             cout << "Total Nodes = "
                  << tree.totalNodes(tree.getRoot()) << endl;
             break;
 
-        case 13:
+        case 10:
             cout << "Leaf Nodes = "
                  << tree.leafNodes(tree.getRoot()) << endl;
             break;
 
-        case 14:
+        case 11:
             cout << "Internal Nodes = "
                  << tree.internalNodes(tree.getRoot()) << endl;
             break;
 
-        case 15:
+        case 12:
             tree.mirror(tree.getRoot());
 
             cout << "Mirror tree created.\n";
             cout << "Inorder of mirror : ";
-            tree.inorder(tree.getRoot());
+            tree.printASC(tree.getRoot());
             cout << endl;
 
             break;
 
-        case 16:
-            tree.constructFromPreIn();
-
-            cout << "Inorder : ";
-            tree.inorder(tree.getRoot());
-            cout << endl;
-
-            break;
-
-        case 17:
-            tree.constructFromPostIn();
-
-            cout << "Inorder : ";
-            tree.inorder(tree.getRoot());
-            cout << endl;
-
-            break;
-
-        case 18:
+        case 13:
             tree.update();
             break;
 
-        case 19:
-        {
-            BST tree2;
-
-            cout << "\nCreate second BST\n";
-            tree2.create();
-
-            if (tree.isEqual(tree.getRoot(), tree2.getRoot()))
-                cout << "Both trees are equal.\n";
-            else
-                cout << "Both trees are not equal.\n";
-
-            break;
-        }
-
-        case 20:
-            cout << "Non-Recursive Preorder : ";
-            tree.preorderNR(tree.getRoot());
-            cout << endl;
-            break;
-
-        case 21:
-            cout << "Non-Recursive Inorder : ";
-            tree.inorderNR(tree.getRoot());
-            cout << endl;
-            break;
-
-        case 22:
-            cout << "Non-Recursive Postorder : ";
-            tree.postorderNR(tree.getRoot());
-            cout << endl;
-            break;
-
-        case 23:
+        case 14:
             cout << "Thank You!\n";
             break;
 
@@ -824,7 +501,7 @@ int main()
             cout << "Invalid Choice!\n";
         }
 
-    } while (choice != 23);
+    } while (choice != 14);
 
     return 0;
 }
