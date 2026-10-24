@@ -31,6 +31,7 @@ public:
     int bf(node *x);
 
     node *insert(node *root, string newKey, string newMean);
+    node *deleteNode(node *root, string key);
     node *search(node *root, string key);
 
     void ascending(node *root);
@@ -184,6 +185,55 @@ node *tree::insert(node *root, string newKey, string newMean)
     return root;
 }
 
+node *tree::deleteNode(node *root, string key)
+{
+    if (!root)
+        return NULL;
+
+    if (key < root->key)
+    {
+        root->left = deleteNode(root->left, key);
+    }
+    else if (key > root->key)
+    {
+        root->right = deleteNode(root->right, key);
+    }
+    else
+    {
+        if (!root->left || !root->right)
+        {
+            node *child = root->left ? root->left : root->right;
+            delete root;
+            return child;
+        }
+
+        node *successor = root->right;
+        while (successor->left)
+            successor = successor->left;
+
+        root->key = successor->key;
+        root->mean = successor->mean;
+        root->right = deleteNode(root->right, successor->key);
+    }
+
+    root->ht = height(root);
+
+    if (bf(root) > 1)
+    {
+        if (bf(root->left) >= 0)
+            return ll(root);
+        return lr(root);
+    }
+    if (bf(root) < -1)
+    {
+        if (bf(root->right) <= 0)
+            return rr(root);
+        return rl(root);
+    }
+
+    return root;
+}
+
 node *tree::search(node *root, string key)
 {
     if (root == NULL)
@@ -236,7 +286,8 @@ int main()
         cout << "2. Search\n";
         cout << "3. Display Ascending\n";
         cout << "4. Display Descending\n";
-        cout << "5. Exit\n";
+        cout << "5. Delete\n";
+        cout << "6. Exit\n";
 
         cout << "Enter your choice: ";
         cin >> choice;
@@ -287,6 +338,21 @@ int main()
             break;
 
         case 5:
+            cout << "Enter key to delete: ";
+            cin >> key;
+
+            if (t.search(t.root, key) != NULL)
+            {
+                t.root = t.deleteNode(t.root, key);
+                cout << "Key deleted successfully.\n";
+            }
+            else
+            {
+                cout << "Key not found.\n";
+            }
+            break;
+
+        case 6:
             cout << "Exiting...\n";
             break;
 
@@ -294,7 +360,7 @@ int main()
             cout << "Invalid choice!\n";
         }
 
-    } while (choice != 5);
+    } while (choice != 6);
 
     return 0;
 }
