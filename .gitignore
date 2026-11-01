@@ -1,3 +1,4 @@
 # Ignore all executable files
 *.exe
 tp.cpp
+.gitignore
