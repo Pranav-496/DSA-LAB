@@ -1,0 +1,61 @@
+DBMS - Assignment 2
+SQL Joins
+
+Consider the given database schema:
+
+Student (studentid, studentname, instructorid, studentcity)
+Instructor (instructorid, instructorname, instructorcity, specialization)
+
+Use joins to write SQL queries for the following:
+
+1. Find the instructor of each student.
+2. Find the students who do not have any instructor.
+3. Find the students who do not have any instructor as well as instructors who do not have any student.
+4. Find the students whose instructor's specialization is computer.
+5. Create a view containing the total number of students whose instructor belongs to Pune.
+
+SQL Solutions
+
+The queries use standard SQL. A NULL instructorid in Student represents a
+student without an assigned instructor. Query 3 uses FULL OUTER JOIN.
+
+1. Instructor of each student (including students without an assigned instructor):
+
+SELECT s.studentid, s.studentname, i.instructorid, i.instructorname
+FROM Student AS s
+LEFT JOIN Instructor AS i
+  ON i.instructorid = s.instructorid;
+
+2. Students who do not have an instructor:
+
+SELECT s.studentid, s.studentname, s.studentcity
+FROM Student AS s
+LEFT JOIN Instructor AS i
+  ON i.instructorid = s.instructorid
+WHERE i.instructorid IS NULL;
+
+3. Students without an instructor and instructors without any student:
+
+SELECT s.studentid, s.studentname, i.instructorid, i.instructorname
+FROM Student AS s
+FULL OUTER JOIN Instructor AS i
+  ON i.instructorid = s.instructorid
+WHERE s.studentid IS NULL
+   OR i.instructorid IS NULL;
+
+4. Students whose instructor's specialization is computer:
+
+SELECT s.studentid, s.studentname, i.instructorname, i.specialization
+FROM Student AS s
+INNER JOIN Instructor AS i
+  ON i.instructorid = s.instructorid
+WHERE LOWER(i.specialization) = 'computer';
+
+5. View containing the total number of students whose instructor belongs to Pune:
+
+CREATE VIEW pune_instructor_student_count AS
+SELECT COUNT(s.studentid) AS total_students
+FROM Instructor AS i
+LEFT JOIN Student AS s
+  ON s.instructorid = i.instructorid
+WHERE i.instructorcity = 'Pune';

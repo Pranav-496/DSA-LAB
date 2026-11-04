@@ -1,0 +1,80 @@
+DBMS - Assignment 8
+MongoDB Aggregation and Indexing
+
+Use the books collection and fields TITLE, DESCRIPTION, BY, URL, TAGS, and
+LIKES. If Assignment 7 has already been completed, continue using that
+collection. The following commands are mongosh queries.
+
+1. Find the number of books published by Raj:
+
+db.books.countDocuments({ BY: "Raj" })
+
+Aggregation equivalent:
+
+db.books.aggregate([
+  { $match: { BY: "Raj" } },
+  { $count: "numberOfBooks" }
+])
+
+2. Find the books with minimum and maximum likes among books published
+by Raj:
+
+Minimum likes:
+
+db.books.find({ BY: "Raj" }).sort({ LIKES: 1 }).limit(1)
+
+Maximum likes:
+
+db.books.find({ BY: "Raj" }).sort({ LIKES: -1 }).limit(1)
+
+If multiple books tie for the minimum or maximum likes, these queries
+return one of them.
+
+3. Find the average number of likes for books published by Raj:
+
+db.books.aggregate([
+  { $match: { BY: "Raj" } },
+  {
+    $group: {
+      _id: "$BY",
+      averageLikes: { $avg: "$LIKES" }
+    }
+  }
+])
+
+4. Find the first and last books published by Raj, ordered by title:
+
+db.books.aggregate([
+  { $match: { BY: "Raj" } },
+  { $sort: { TITLE: 1 } },
+  {
+    $group: {
+      _id: "$BY",
+      firstBook: { $first: "$$ROOT" },
+      lastBook: { $last: "$$ROOT" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      firstBook: 1,
+      lastBook: 1
+    }
+  }
+])
+
+5. Create an index on author name (the BY field):
+
+db.books.createIndex({ BY: 1 })
+
+Display Raj's books and inspect whether the query uses the index:
+
+db.books.find({ BY: "Raj" }).explain("executionStats")
+
+In the explain output, inspect queryPlanner.winningPlan for an IXSCAN
+stage using the BY_1 index. If the collection is very small, the query
+planner may choose a collection scan because it is cheaper; test with a
+larger collection or use the hint below to confirm that the index is
+available:
+
+db.books.find({ BY: "Raj" }).hint({ BY: 1 }).explain("executionStats")

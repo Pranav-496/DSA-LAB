@@ -1,0 +1,106 @@
+DBMS - Assignment 4
+PL/SQL Block
+
+Schema:
+
+Borrower (Rollin, NameofBook, DateofIssue, Status)
+Fine (Roll_no, Date, Amt)
+
+The fine rules in the question overlap for durations below 30 days. This
+solution interprets them as Rs. 5 per day for up to 30 days and Rs. 50 per
+day for each day when the delay is more than 30 days. Fine is calculated
+from DateofIssue to the return date (SYSDATE).
+
+Run the following in Oracle SQL*Plus or a compatible Oracle SQL worksheet.
+
+Create the tables:
+
+CREATE TABLE Borrower (
+    Rollin       NUMBER(10),
+    NameofBook   VARCHAR2(100) NOT NULL,
+    DateofIssue  DATE NOT NULL,
+    Status       CHAR(1) NOT NULL CHECK (Status IN ('I', 'R')),
+    CONSTRAINT borrower_issue_pk PRIMARY KEY (Rollin, NameofBook, DateofIssue)
+);
+
+CREATE TABLE Fine (
+    Roll_no   NUMBER(10) NOT NULL,
+    "Date"    DATE NOT NULL,
+    Amt       NUMBER(10, 2) NOT NULL
+);
+
+1. PL/SQL block to accept and insert a borrower record:
+
+-- SQL*Plus prompts for these values before running the PL/SQL block.
+ACCEPT p_rollin NUMBER PROMPT 'Enter roll number: '
+ACCEPT p_book CHAR PROMPT 'Enter book name: '
+ACCEPT p_issue_date CHAR PROMPT 'Enter issue date (YYYY-MM-DD): '
+
+BEGIN
+    INSERT INTO Borrower (Rollin, NameofBook, DateofIssue, Status)
+    VALUES (
+        &p_rollin,
+        '&p_book',
+        TO_DATE('&p_issue_date', 'YYYY-MM-DD'),
+        'I'
+    );
+    COMMIT;
+END;
+/
+
+2. PL/SQL block to return a book, update its status, and record a fine:
+
+ACCEPT p_return_rollin NUMBER PROMPT 'Enter roll number returning a book: '
+ACCEPT p_return_book CHAR PROMPT 'Enter book name being returned: '
+ACCEPT p_return_issue_date CHAR PROMPT 'Enter issue date (YYYY-MM-DD): '
+
+DECLARE
+    v_issue_date Borrower.DateofIssue%TYPE;
+    v_days       NUMBER;
+    v_fine       Fine.Amt%TYPE;
+BEGIN
+    SELECT DateofIssue
+      INTO v_issue_date
+      FROM Borrower
+     WHERE Rollin = &p_return_rollin
+       AND NameofBook = '&p_return_book'
+       AND DateofIssue = TO_DATE('&p_return_issue_date', 'YYYY-MM-DD')
+       AND Status = 'I'
+       FOR UPDATE;
+
+    v_days := GREATEST(TRUNC(SYSDATE) - TRUNC(v_issue_date), 0);
+
+    IF v_days > 30 THEN
+        v_fine := v_days * 50;
+    ELSIF v_days > 0 THEN
+        v_fine := v_days * 5;
+    ELSE
+        v_fine := 0;
+    END IF;
+
+    UPDATE Borrower
+       SET Status = 'R'
+     WHERE Rollin = &p_return_rollin
+       AND NameofBook = '&p_return_book'
+       AND DateofIssue = TO_DATE('&p_return_issue_date', 'YYYY-MM-DD')
+       AND Status = 'I';
+
+    IF v_fine > 0 THEN
+        INSERT INTO Fine (Roll_no, "Date", Amt)
+        VALUES (&p_return_rollin, SYSDATE, v_fine);
+    END IF;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Days since issue: ' || v_days);
+    DBMS_OUTPUT.PUT_LINE('Fine amount: Rs. ' || v_fine);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('No currently issued book found for this roll number.');
+END;
+/
+
+Enable DBMS_OUTPUT in the SQL worksheet to see the fine amount. If a
+student can borrow multiple copies of the same book on the same date, add
+a unique issue identifier to Borrower and use it to identify the returned
+copy.

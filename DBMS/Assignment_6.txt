@@ -1,0 +1,133 @@
+DBMS - Assignment 6
+Database Connectivity
+
+Implement a menu-driven program using Python and MySQL to add, delete, edit,
+and view database records.
+
+1. MySQL setup
+
+Run the following SQL using a MySQL account that can create databases and
+tables:
+
+CREATE DATABASE IF NOT EXISTS dbms_assignment;
+USE dbms_assignment;
+
+CREATE TABLE IF NOT EXISTS students (
+    student_id INT PRIMARY KEY,
+    student_name VARCHAR(100) NOT NULL,
+    city VARCHAR(100) NOT NULL
+);
+
+2. Install the Python connector
+
+python -m pip install mysql-connector-python
+
+3. Save and run this program as a Python file:
+
+import mysql.connector
+from mysql.connector import Error
+
+
+def connect():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="YOUR_MYSQL_PASSWORD",
+        database="dbms_assignment",
+    )
+
+
+def show_students(cursor):
+    cursor.execute(
+        "SELECT student_id, student_name, city FROM students ORDER BY student_id"
+    )
+    rows = cursor.fetchall()
+    if not rows:
+        print("No student records found.")
+        return
+    for student_id, student_name, city in rows:
+        print(f"ID: {student_id} | Name: {student_name} | City: {city}")
+
+
+def main():
+    try:
+        connection = connect()
+    except Error as error:
+        print(f"Could not connect to MySQL: {error}")
+        return
+
+    try:
+        with connection.cursor() as cursor:
+            while True:
+                print(
+                    "\n1. Add student\n"
+                    "2. View students\n"
+                    "3. Edit student\n"
+                    "4. Delete student\n"
+                    "5. Exit"
+                )
+                choice = input("Choose an option: ").strip()
+
+                if choice == "1":
+                    student_id = int(input("Student ID: "))
+                    student_name = input("Student name: ").strip()
+                    city = input("City: ").strip()
+                    cursor.execute(
+                        "INSERT INTO students (student_id, student_name, city) "
+                        "VALUES (%s, %s, %s)",
+                        (student_id, student_name, city),
+                    )
+                    connection.commit()
+                    print("Student added.")
+
+                elif choice == "2":
+                    show_students(cursor)
+
+                elif choice == "3":
+                    student_id = int(input("Student ID to edit: "))
+                    student_name = input("New student name: ").strip()
+                    city = input("New city: ").strip()
+                    cursor.execute(
+                        "UPDATE students SET student_name = %s, city = %s "
+                        "WHERE student_id = %s",
+                        (student_name, city, student_id),
+                    )
+                    connection.commit()
+                    if cursor.rowcount:
+                        print("Student updated.")
+                    else:
+                        print("No student found with that ID.")
+
+                elif choice == "4":
+                    student_id = int(input("Student ID to delete: "))
+                    cursor.execute(
+                        "DELETE FROM students WHERE student_id = %s",
+                        (student_id,),
+                    )
+                    connection.commit()
+                    if cursor.rowcount:
+                        print("Student deleted.")
+                    else:
+                        print("No student found with that ID.")
+
+                elif choice == "5":
+                    break
+
+                else:
+                    print("Invalid option. Choose a number from 1 to 5.")
+
+    except ValueError:
+        print("Student ID must be a whole number.")
+    except Error as error:
+        connection.rollback()
+        print(f"Database operation failed: {error}")
+    finally:
+        connection.close()
+
+
+if __name__ == "__main__":
+    main()
+
+Replace YOUR_MYSQL_PASSWORD with the password for your MySQL account.
+The SQL statements use placeholders for user-supplied values to avoid
+building queries by concatenating input.

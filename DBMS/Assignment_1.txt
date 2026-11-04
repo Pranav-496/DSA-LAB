@@ -1,0 +1,152 @@
+DBMS - Assignment 1
+SQL Queries
+
+Consider the given database schema:
+
+employee (employee-name, street, city)
+works (employee-name, company-name, salary)
+company (company-name, city)
+manages (employee-name, manager-name)
+
+Write SQL queries for the following:
+
+1. Find the names of all employees who work for First Bank Corporation.
+2. Find the names and cities of residence of all employees who work for First Bank Corporation.
+3. Find the names, street addresses, and cities of residence of all employees who work for First Bank Corporation and earn more than Rs. 10,000.
+4. Find all employees in the database who live in the same city as the companies for which they work.
+5. Find all employees in the database who live in the same cities and on the same streets as do their managers.
+6. Find all employees in the database who do not work for First Bank Corporation.
+7. Find all employees in the database who earn more than each employee of Small Bank Corporation.
+8. Assume that the companies may be located in several cities. Find all companies located in every city in which Small Bank Corporation is located.
+9. Find all employees who earn more than the average salary of all employees of their company.
+10. Find the company that has the most employees.
+11. Find the company that has the smallest payroll.
+12. Find those companies whose employees earn a higher salary, on average, than the average salary at First Bank Corporation.
+
+SQL Solutions
+
+The queries below use standard SQL. Double quotes delimit column names
+containing hyphens, such as "employee-name".
+
+1. Employees who work for First Bank Corporation:
+
+SELECT DISTINCT "employee-name"
+FROM works
+WHERE "company-name" = 'First Bank Corporation';
+
+2. Names and residence cities of those employees:
+
+SELECT DISTINCT e."employee-name", e.city
+FROM employee AS e
+JOIN works AS w ON w."employee-name" = e."employee-name"
+WHERE w."company-name" = 'First Bank Corporation';
+
+3. Names, streets, and cities of employees earning more than Rs. 10,000
+at First Bank Corporation:
+
+SELECT DISTINCT e."employee-name", e.street, e.city
+FROM employee AS e
+JOIN works AS w ON w."employee-name" = e."employee-name"
+WHERE w."company-name" = 'First Bank Corporation'
+  AND w.salary > 10000;
+
+4. Employees who live in the same city as a company for which they work:
+
+SELECT DISTINCT e.*
+FROM employee AS e
+JOIN works AS w ON w."employee-name" = e."employee-name"
+JOIN company AS c ON c."company-name" = w."company-name"
+WHERE e.city = c.city;
+
+5. Employees who live on the same street and in the same city as their
+managers:
+
+SELECT DISTINCT e.*
+FROM employee AS e
+JOIN manages AS m ON m."employee-name" = e."employee-name"
+JOIN employee AS manager
+  ON manager."employee-name" = m."manager-name"
+WHERE e.street = manager.street
+  AND e.city = manager.city;
+
+6. Employees who do not work for First Bank Corporation:
+
+SELECT e.*
+FROM employee AS e
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM works AS w
+    WHERE w."employee-name" = e."employee-name"
+      AND w."company-name" = 'First Bank Corporation'
+);
+
+7. Employees who earn more than every employee of Small Bank Corporation:
+
+SELECT DISTINCT e.*
+FROM employee AS e
+JOIN works AS w ON w."employee-name" = e."employee-name"
+WHERE w.salary > ALL (
+    SELECT small_bank.salary
+    FROM works AS small_bank
+    WHERE small_bank."company-name" = 'Small Bank Corporation'
+);
+
+8. Companies located in every city where Small Bank Corporation is located:
+
+SELECT DISTINCT c."company-name"
+FROM company AS c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM company AS small_bank
+    WHERE small_bank."company-name" = 'Small Bank Corporation'
+      AND NOT EXISTS (
+          SELECT 1
+          FROM company AS candidate
+          WHERE candidate."company-name" = c."company-name"
+            AND candidate.city = small_bank.city
+      )
+);
+
+9. Employees who earn more than the average salary at their company:
+
+SELECT DISTINCT w."employee-name"
+FROM works AS w
+WHERE w.salary > (
+    SELECT AVG(w2.salary)
+    FROM works AS w2
+    WHERE w2."company-name" = w."company-name"
+);
+
+10. Company or companies with the most employees (including ties):
+
+WITH employee_counts AS (
+    SELECT "company-name", COUNT(DISTINCT "employee-name") AS employee_count
+    FROM works
+    GROUP BY "company-name"
+)
+SELECT "company-name"
+FROM employee_counts
+WHERE employee_count = (SELECT MAX(employee_count) FROM employee_counts);
+
+11. Company or companies with the smallest total payroll (including ties):
+
+WITH company_payrolls AS (
+    SELECT "company-name", SUM(salary) AS payroll
+    FROM works
+    GROUP BY "company-name"
+)
+SELECT "company-name"
+FROM company_payrolls
+WHERE payroll = (SELECT MIN(payroll) FROM company_payrolls);
+
+12. Companies whose average salary is higher than First Bank Corporation's
+average salary:
+
+SELECT "company-name"
+FROM works
+GROUP BY "company-name"
+HAVING AVG(salary) > (
+    SELECT AVG(salary)
+    FROM works
+    WHERE "company-name" = 'First Bank Corporation'
+);

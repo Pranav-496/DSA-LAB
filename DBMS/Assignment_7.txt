@@ -1,0 +1,148 @@
+DBMS - Assignment 7
+MongoDB Queries
+
+The examples below use mongosh and a collection named books. Run the setup
+and insert commands before the queries. MongoDB field names are
+case-sensitive.
+
+1. Create the collection:
+
+db.createCollection("books")
+
+2. Insert five sample documents. Change the sample values as needed:
+
+db.books.insertMany([
+  {
+    TITLE: "mongodb",
+    DESCRIPTION: "Introduction to MongoDB",
+    BY: "Raj",
+    URL: "https://example.com/mongodb",
+    TAGS: ["database", "nosql"],
+    LIKES: 120
+  },
+  {
+    TITLE: "NoSQLOverview",
+    DESCRIPTION: "Overview of NoSQL databases",
+    BY: "Asha",
+    URL: "https://example.com/nosql",
+    TAGS: ["database", "nosql"],
+    LIKES: 85
+  },
+  {
+    TITLE: "MongoDBBasics",
+    DESCRIPTION: "Getting started with MongoDB",
+    BY: "Raj",
+    URL: "https://example.com/basics",
+    TAGS: ["mongodb", "tutorial"],
+    LIKES: 45
+  },
+  {
+    TITLE: "DatabaseDesign",
+    DESCRIPTION: "Fundamentals of database design",
+    BY: "Meera",
+    URL: "https://example.com/design",
+    TAGS: ["database", "design"],
+    LIKES: 18
+  },
+  {
+    TITLE: "MongoDBAdvanced",
+    DESCRIPTION: "Advanced MongoDB topics",
+    BY: "Raj",
+    URL: "https://example.com/advanced",
+    TAGS: ["mongodb", "advanced"],
+    LIKES: 150
+  }
+])
+
+3. Insert one more document with user name and comments:
+
+db.books.insertOne({
+  TITLE: "MongoDBComments",
+  DESCRIPTION: "A document with user comments",
+  BY: "Nina",
+  URL: "https://example.com/comments",
+  TAGS: ["mongodb", "comments"],
+  LIKES: 12,
+  USERNAME: "student1",
+  COMMENTS: ["Useful introduction", "Please add more examples"]
+})
+
+4. Display all documents whose title is "mongodb":
+
+db.books.find({ TITLE: "mongodb" })
+
+5. Display documents written by Raj or whose title is "mongodb":
+
+db.books.find({
+  $or: [{ BY: "Raj" }, { TITLE: "mongodb" }]
+})
+
+6. Display documents whose title is "mongodb" and written by Raj:
+
+db.books.find({ TITLE: "mongodb", BY: "Raj" })
+
+7. Display documents whose likes are greater than 10:
+
+db.books.find({ LIKES: { $gt: 10 } })
+
+8. Display documents whose likes are greater than 100 and whose title is
+"mongodb" or whose author is Raj:
+
+db.books.find({
+  LIKES: { $gt: 100 },
+  $or: [{ TITLE: "mongodb" }, { BY: "Raj" }]
+})
+
+9. Update the title of the "mongodb" document written by Raj:
+
+db.books.updateOne(
+  { TITLE: "mongodb", BY: "Raj" },
+  { $set: { TITLE: "mongodb overview" } }
+)
+
+10. Delete the document titled "NoSQLOverview":
+
+db.books.deleteOne({ TITLE: "NoSQLOverview" })
+
+11. Display exactly two documents written by Raj:
+
+db.books.find({ BY: "Raj" }).limit(2)
+
+12. Display the second document published by Raj (in insertion order):
+
+db.books.find({ BY: "Raj" }).skip(1).limit(1)
+
+13. Display all books sorted by title in ascending order:
+
+db.books.find().sort({ TITLE: 1 })
+
+14. Insert a document using the modern equivalent of the old save method:
+
+// For a new document:
+db.books.insertOne({
+  TITLE: "MongoDBSaveExample",
+  DESCRIPTION: "Inserted using insertOne",
+  BY: "Raj",
+  URL: "https://example.com/save-example",
+  TAGS: ["mongodb"],
+  LIKES: 5
+})
+
+// To save-or-replace by title (upsert):
+db.books.updateOne(
+  { TITLE: "MongoDBSaveExample" },
+  {
+    $set: {
+      DESCRIPTION: "Saved using an upsert",
+      BY: "Raj",
+      URL: "https://example.com/save-example",
+      TAGS: ["mongodb"],
+      LIKES: 5
+    }
+  },
+  { upsert: true }
+)
+
+The MongoDB shell's old db.collection.save() method is deprecated/removed
+in modern versions. Use insertOne() for a new document, or updateOne()
+with upsert: true for save-or-replace behavior.

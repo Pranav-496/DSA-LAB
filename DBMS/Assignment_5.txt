@@ -1,0 +1,64 @@
+DBMS - Assignment 5
+Database Trigger
+
+Create a Library database/schema with this table:
+
+Books (AccNo, Title, Author, Publisher, Count)
+
+Create an audit table with the same book fields plus the date and action
+status. The following solution uses Oracle SQL and PL/SQL triggers. Run it
+in the Library schema (or an Oracle user/schema named Library).
+
+1. Create the Books and Library_Audit tables:
+
+CREATE TABLE Books (
+    AccNo      NUMBER(10) PRIMARY KEY,
+    Title      VARCHAR2(200),
+    Author     VARCHAR2(150),
+    Publisher  VARCHAR2(150),
+    "Count"    NUMBER(10)
+);
+
+CREATE TABLE Library_Audit (
+    AccNo      NUMBER(10),
+    Title      VARCHAR2(200),
+    Author     VARCHAR2(150),
+    Publisher  VARCHAR2(150),
+    "Count"    NUMBER(10),
+    Audit_Date DATE NOT NULL,
+    Status     VARCHAR2(10) NOT NULL
+);
+
+2. Before-delete trigger: save the deleted book's old values, deletion
+date, and status in Library_Audit:
+
+CREATE OR REPLACE TRIGGER books_before_delete_audit
+BEFORE DELETE ON Books
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit
+        (AccNo, Title, Author, Publisher, "Count", Audit_Date, Status)
+    VALUES
+        (:OLD.AccNo, :OLD.Title, :OLD.Author, :OLD.Publisher, :OLD."Count",
+         SYSDATE, 'deleted');
+END;
+/
+
+3. After-update trigger: save the updated book's new values, update date,
+and status in Library_Audit:
+
+CREATE OR REPLACE TRIGGER books_after_update_audit
+AFTER UPDATE ON Books
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit
+        (AccNo, Title, Author, Publisher, "Count", Audit_Date, Status)
+    VALUES
+        (:NEW.AccNo, :NEW.Title, :NEW.Author, :NEW.Publisher, :NEW."Count",
+         SYSDATE, 'updated');
+END;
+/
+
+The audit inserts participate in the same transaction as the original
+DELETE or UPDATE. If the original statement is rolled back, its audit row
+is rolled back as well.
